@@ -1,6 +1,6 @@
 {
     "name": "lockfile-guard",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Diff two lockfiles in a PR and report supply-chain risk: new install scripts, a changed publisher, versions published minutes ago, resolutions pointing at another registry, obscure new transitive dependencies.",
     "license": "MIT",
     "sideEffects": false,
