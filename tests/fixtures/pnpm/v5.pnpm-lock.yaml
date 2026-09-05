@@ -1,0 +1,24 @@
+lockfileVersion: 5.4
+
+specifiers:
+  left-pad: ^1.3.0
+  vitest: ^2.0.0
+
+dependencies:
+  left-pad: 1.3.0
+
+devDependencies:
+  vitest: 2.0.0
+
+packages:
+  /left-pad/1.3.0:
+    resolution: {integrity: sha512-BASEleftpad==}
+    dev: false
+
+  /@scope/tiny/2.0.0:
+    resolution: {integrity: sha512-BAStiny==}
+    dev: false
+
+  /vitest/2.0.0_react@18.2.0:
+    resolution: {integrity: sha512-BASEvitest==}
+    dev: true

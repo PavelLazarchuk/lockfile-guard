@@ -1,0 +1,79 @@
+name: CI
+
+on:
+    pull_request:
+    push:
+        branches: [main]
+
+jobs:
+    verify:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: npm
+
+            - run: npm ci
+
+            - name: Format check
+              run: npm run format:check
+
+            - name: Lint
+              run: npm run lint
+
+            - name: Typecheck
+              run: npm run typecheck
+
+            - name: Unit tests with coverage
+              run: npm run test:coverage
+
+            - name: Build
+              run: npm run build
+
+            - name: Bundle size
+              run: npm run size
+
+            - name: Exports sanity (publint + attw)
+              run: npm run check-exports
+
+            - name: Tarball contents review
+              run: npm run pack:verify
+
+    self-check:
+        name: Guard our own lockfile
+        if: github.event_name == 'pull_request'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            pull-requests: write
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: npm
+
+            - run: npm ci
+
+            - name: Build the CLI under test
+              run: npm run build
+
+            # The action runs the published CLI; this job runs the one in the pull request, which is
+            # the only way the demo in the README is also a test of the code that produced it.
+            - name: Diff this pull request's lockfile
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+              run: |
+                  set -euo pipefail
+                  git show "origin/${GITHUB_BASE_REF}:package-lock.json" > "${RUNNER_TEMP}/base-lock.json"
+                  node dist/cli.js \
+                      --base "${RUNNER_TEMP}/base-lock.json" \
+                      --head package-lock.json \
+                      --fail-on high \
+                      --github-comment

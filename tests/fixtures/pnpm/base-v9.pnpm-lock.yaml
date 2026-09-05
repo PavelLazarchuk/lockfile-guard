@@ -1,0 +1,33 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+  .:
+    dependencies:
+      esbuild:
+        specifier: ^0.24.0
+        version: 0.24.0
+    devDependencies:
+      vitest:
+        specifier: ^2.0.0
+        version: 2.0.0
+
+packages:
+  esbuild@0.24.0:
+    resolution: {integrity: sha512-BASEesbuild==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  '@scope/tiny@2.0.0':
+    resolution: {integrity: sha512-BAStiny==}
+
+  vitest@2.0.0:
+    resolution: {integrity: sha512-BASEvitest==}
+
+snapshots:
+  esbuild@0.24.0: {}
+  '@scope/tiny@2.0.0': {}
+  vitest@2.0.0: {}

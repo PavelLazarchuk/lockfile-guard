@@ -1,0 +1,100 @@
+name: lockfile-guard
+description: Diff the pull request's lockfile against the base branch and report supply-chain risk as a sticky comment.
+author: Pavel Lazarchuk
+
+branding:
+    icon: lock
+    color: purple
+
+inputs:
+    lockfile:
+        description: Path to the head lockfile, relative to the repository root.
+        default: package-lock.json
+    base-ref:
+        description: Branch to diff against. Defaults to the pull request's base branch.
+        default: ''
+    fail-on:
+        description: Lowest severity that fails the job — critical, high, medium, low or none.
+        default: high
+    format:
+        description: markdown, json or sarif.
+        default: markdown
+    output:
+        description: Write the report to this file instead of the step log.
+        default: ''
+    comment:
+        description: Post or update the sticky pull-request comment.
+        default: 'true'
+    offline:
+        description: Skip every rule that needs the registry.
+        default: 'false'
+    config:
+        description: Path to a lockfile-guard.config.json.
+        default: ''
+    args:
+        description: Extra command-line arguments, appended verbatim.
+        default: ''
+    version:
+        description: Version of lockfile-guard to run.
+        default: latest
+    token:
+        description: Token used to write the pull-request comment.
+        default: ${{ github.token }}
+
+runs:
+    using: composite
+    steps:
+        - name: Fetch the base lockfile
+          id: base
+          shell: bash
+          env:
+              LOCKFILE: ${{ inputs.lockfile }}
+              BASE_REF: ${{ inputs.base-ref || github.base_ref || github.event.repository.default_branch }}
+          run: |
+              set -euo pipefail
+
+              dir="${RUNNER_TEMP}/lockfile-guard"
+              mkdir -p "$dir"
+              base="${dir}/$(basename "$LOCKFILE")"
+
+              # The base lockfile comes out of git, never out of the API: a fork's token cannot read
+              # the API, but the ref is already in the clone.
+              git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}" 2>/dev/null || true
+
+              if ! git show "origin/${BASE_REF}:${LOCKFILE}" > "$base" 2>/dev/null; then
+                  echo "No ${LOCKFILE} on ${BASE_REF} — treating every dependency as new."
+                  case "$LOCKFILE" in
+                      *.yaml|*.yml) printf "lockfileVersion: '9.0'\npackages: {}\n" > "$base" ;;
+                      *) printf '{"lockfileVersion":3,"packages":{}}\n' > "$base" ;;
+                  esac
+              fi
+              echo "path=${base}" >> "$GITHUB_OUTPUT"
+
+        - name: Run lockfile-guard
+          shell: bash
+          env:
+              GITHUB_TOKEN: ${{ inputs.token }}
+              LOCKFILE: ${{ inputs.lockfile }}
+              BASE_LOCKFILE: ${{ steps.base.outputs.path }}
+              FAIL_ON: ${{ inputs.fail-on }}
+              FORMAT: ${{ inputs.format }}
+              OUTPUT: ${{ inputs.output }}
+              COMMENT: ${{ inputs.comment }}
+              OFFLINE: ${{ inputs.offline }}
+              CONFIG: ${{ inputs.config }}
+              EXTRA_ARGS: ${{ inputs.args }}
+              VERSION: ${{ inputs.version }}
+          run: |
+              set -euo pipefail
+
+              args=(--base "$BASE_LOCKFILE" --head "$LOCKFILE" --fail-on "$FAIL_ON" --format "$FORMAT")
+
+              [ -n "$OUTPUT" ] && args+=(--output "$OUTPUT")
+              [ -n "$CONFIG" ] && args+=(--config "$CONFIG")
+              [ "$COMMENT" = "true" ] && [ "$FORMAT" = "markdown" ] && args+=(--github-comment)
+              [ "$OFFLINE" = "true" ] && args+=(--offline)
+
+              # shellcheck disable=SC2206
+              [ -n "$EXTRA_ARGS" ] && args+=($EXTRA_ARGS)
+
+              npx --yes "lockfile-guard@${VERSION}" "${args[@]}"

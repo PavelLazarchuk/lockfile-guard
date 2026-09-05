@@ -1,0 +1,16 @@
+[
+    {
+        "name": "lockfile-guard (library)",
+        "path": "dist/index.js",
+        "limit": "14 kB",
+        "gzip": true,
+        "ignore": ["yaml", "fs", "fs/promises", "path", "crypto", "os", "url"]
+    },
+    {
+        "name": "lockfile-guard (cli)",
+        "path": "dist/cli.js",
+        "limit": "16 kB",
+        "gzip": true,
+        "ignore": ["yaml", "fs", "fs/promises", "path", "crypto", "os", "url"]
+    }
+]

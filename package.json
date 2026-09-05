@@ -1,0 +1,111 @@
+{
+    "name": "lockfile-guard",
+    "version": "1.0.0",
+    "description": "Diff two lockfiles in a PR and report supply-chain risk: new install scripts, a changed publisher, versions published minutes ago, resolutions pointing at another registry, obscure new transitive dependencies.",
+    "license": "MIT",
+    "sideEffects": false,
+    "type": "module",
+    "engines": {
+        "node": ">=20"
+    },
+    "files": [
+        "dist",
+        "action.yml",
+        "README.md",
+        "LICENSE"
+    ],
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
+    },
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.js"
+            },
+            "require": {
+                "types": "./dist/index.d.cts",
+                "default": "./dist/index.cjs"
+            }
+        },
+        "./package.json": "./package.json"
+    },
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "bin": {
+        "lockfile-guard": "./dist/cli.js",
+        "lfguard": "./dist/cli.js"
+    },
+    "scripts": {
+        "build": "tsup && node scripts/chmod-bin.mjs",
+        "dev": "tsup --watch --onSuccess \"node scripts/chmod-bin.mjs\"",
+        "typecheck": "tsc --noEmit",
+        "lint": "eslint .",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage",
+        "check-exports": "publint && attw --pack .",
+        "size": "size-limit",
+        "pack:verify": "npm pack --dry-run",
+        "changeset": "changeset",
+        "release": "npm run build && node scripts/publish-if-new.mjs",
+        "prepare": "husky"
+    },
+    "dependencies": {
+        "yaml": "^2.8.1"
+    },
+    "keywords": [
+        "lockfile",
+        "package-lock",
+        "pnpm-lock",
+        "supply-chain",
+        "security",
+        "npm-audit",
+        "ci",
+        "dependabot",
+        "postinstall",
+        "install-script",
+        "sarif",
+        "github-action",
+        "dependency-review",
+        "provenance"
+    ],
+    "author": "Pavel Lazarchuk",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/PavelLazarchuk/lockfile-guard.git"
+    },
+    "bugs": {
+        "url": "https://github.com/PavelLazarchuk/lockfile-guard/issues"
+    },
+    "homepage": "https://github.com/PavelLazarchuk/lockfile-guard#readme",
+    "devDependencies": {
+        "@arethetypeswrong/cli": "^0.18.5",
+        "@changesets/cli": "^2.31.1",
+        "@eslint/js": "^10.0.1",
+        "@size-limit/preset-small-lib": "^13.0.3",
+        "@types/node": "^26.4.0",
+        "@vitest/coverage-v8": "^4.1.11",
+        "eslint": "^10.9.1",
+        "eslint-config-prettier": "^10.1.8",
+        "husky": "^9.1.7",
+        "lint-staged": "^17.4.1",
+        "prettier": "^3.9.6",
+        "publint": "^0.3.24",
+        "size-limit": "^13.0.3",
+        "tsup": "^8.5.1",
+        "typescript": "^6.0.3",
+        "typescript-eslint": "^8.68.0",
+        "undici": "^7.16.0",
+        "vitest": "^4.1.11"
+    },
+    "overrides": {
+        "tsup": {
+            "esbuild": "^0.28.2"
+        }
+    }
+}

