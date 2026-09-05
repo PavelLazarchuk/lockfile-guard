@@ -2,7 +2,14 @@ import { parse as parseYaml } from 'yaml';
 import type { Lockfile, Package } from '../model';
 import { ParseError } from './errors';
 
-type Resolution = { integrity?: string; tarball?: string; type?: string };
+type Resolution = {
+    integrity?: string;
+    tarball?: string;
+    type?: string;
+    repo?: string;
+    commit?: string;
+    directory?: string;
+};
 
 type PnpmEntry = { resolution?: Resolution; dev?: boolean };
 
@@ -90,11 +97,12 @@ export function parsePnpmLock(source: string, filename = 'pnpm-lock.yaml'): Lock
         if (parsed === null) continue;
 
         const resolution = entry?.resolution ?? {};
+        const resolved = resolvedFrom(resolution);
 
         packages.push({
             name: parsed.name,
             version: parsed.version,
-            ...(resolution.tarball === undefined ? {} : { resolved: resolution.tarball }),
+            ...(resolved === undefined ? {} : { resolved }),
             ...(resolution.integrity === undefined ? {} : { integrity: resolution.integrity }),
             // v5 and v6 record dev-ness per entry; v9 dropped it, leaving only the importers.
             dev: entry?.dev === true || (entry?.dev === undefined && devOnly.has(parsed.name)),
@@ -104,6 +112,16 @@ export function parsePnpmLock(source: string, filename = 'pnpm-lock.yaml'): Lock
     }
 
     return { kind: 'pnpm', lockfileVersion: String(lock.lockfileVersion), packages };
+}
+
+function resolvedFrom(resolution: Resolution): string | undefined {
+    if (resolution.tarball !== undefined) return resolution.tarball;
+    if (resolution.directory !== undefined) return resolution.directory;
+    if (resolution.repo === undefined) return undefined;
+
+    const repo = resolution.repo.startsWith('git+') ? resolution.repo : `git+${resolution.repo}`;
+
+    return resolution.commit === undefined ? repo : `${repo}#${resolution.commit}`;
 }
 
 function isRuntimeDependency(roots: Importer[], name: string): boolean {

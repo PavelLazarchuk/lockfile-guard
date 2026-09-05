@@ -89,12 +89,16 @@ runs:
 
               args=(--base "$BASE_LOCKFILE" --head "$LOCKFILE" --fail-on "$FAIL_ON" --format "$FORMAT")
 
-              [ -n "$OUTPUT" ] && args+=(--output "$OUTPUT")
-              [ -n "$CONFIG" ] && args+=(--config "$CONFIG")
-              [ "$COMMENT" = "true" ] && [ "$FORMAT" = "markdown" ] && args+=(--github-comment)
-              [ "$OFFLINE" = "true" ] && args+=(--offline)
+              if [ -n "$OUTPUT" ]; then args+=(--output "$OUTPUT"); fi
+              if [ -n "$CONFIG" ]; then args+=(--config "$CONFIG"); fi
+              if [ "$COMMENT" = "true" ] && [ "$FORMAT" = "markdown" ]; then
+                  args+=(--github-comment)
+              fi
+              if [ "$OFFLINE" = "true" ]; then args+=(--offline); fi
 
-              # shellcheck disable=SC2206
-              [ -n "$EXTRA_ARGS" ] && args+=($EXTRA_ARGS)
+              if [ -n "$EXTRA_ARGS" ]; then
+                  # shellcheck disable=SC2206
+                  args+=($EXTRA_ARGS)
+              fi
 
               npx --yes "lockfile-guard@${VERSION}" "${args[@]}"

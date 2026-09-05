@@ -65,6 +65,25 @@ describe('parsePnpmLock', () => {
         expect(lock.packages.find(pkg => pkg.name === 'esbuild')?.resolved).toBeUndefined();
     });
 
+    it('records where a git or directory resolution comes from, so it is not judged as a tarball', () => {
+        const lock = parsePnpmLock(
+            [
+                "lockfileVersion: '9.0'",
+                'packages:',
+                '  forked@github.com/acme/forked/f9e8d7c:',
+                '    resolution: {type: git, repo: https://github.com/acme/forked.git, commit: f9e8d7c}',
+                '  local-pkg@file:../local:',
+                '    resolution: {type: directory, directory: ../local}',
+                '',
+            ].join('\n')
+        );
+        expect(lock.packages.map(pkg => pkg.resolved)).toEqual([
+            'git+https://github.com/acme/forked.git#f9e8d7c',
+            '../local',
+        ]);
+        expect(lock.packages.every(pkg => pkg.integrity === undefined)).toBe(true);
+    });
+
     it.each([
         ['\t- broken: [yaml', /not valid YAML/],
         ['- a\n- b\n', /must contain a YAML mapping/],
